@@ -22,10 +22,12 @@ public:
 private slots:
 	void onPolygonSelectReceived();
 	void onEditingExitReceived();
+	void onZoomReceived(QPointF oldPos, QPointF newPos);
 
 private:
 	Ui::MainWindow *ui;
 	void newPolygon();
+	void saveToJson();
 	void selectPolygon(QUuid id);
 	// void selectEdge(QUuid id);
 	// void selectVertex(QUuid id);

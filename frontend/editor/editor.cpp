@@ -12,8 +12,12 @@
 #include <QStringList>
 #include <QVector>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
-QVector<QString> properties{"1", "2", "3"};
 
 Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	// widget setup
@@ -22,8 +26,11 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	vtable = ui->vertexTable;
 	etable = ui->edgeTable;
 
+	polygonMaterials = {"1", "2", "3"};
+	edgeProperties = {"1", "2", "3"};
+
 	// polygon properties setup
-	ui->polygonMaterial->addItems(properties);
+	ui->polygonMaterial->addItems(polygonMaterials);
 
 	// vertexTable setUp
 	vtable->setColumnCount(5);
@@ -81,6 +88,7 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	polygonNumber = Polygon::get_polygons_total();
 	addBtn->setIcon(addIcon);
 
+
 	// opening editor on polygon selection
 	connect(Mediator::instance(), &Mediator::onPolygonSelect, this,
 			&Editor::onPolygonSelectReceived);
@@ -91,8 +99,13 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	connect(Mediator::instance(), &Mediator::onEdgeSelect, this,
 			&Editor::onEdgeSelectReceived);
 
+
 	// testing
-	connect(ui->loadBtn, &QPushButton::released, this, &Editor::load);
+	// connect(ui->loadBtn, &QPushButton::released, this, &Editor::loadFromJson);
+	connect(Mediator::instance(), &Mediator::onLoadFromJson, this,
+			&Editor::loadFromJson);
+	connect(Mediator::instance(), &Mediator::onSaveToJson, this,
+			&Editor::saveToJson);
 
 	// Add Vertext by mouse click
 	// connect(Mediator::instance(), &Mediator::addNewVertex, this,
@@ -109,22 +122,150 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	// 		&Editor::onBufferConnect);
 }
 
-// Slot for create two testing polygons
-void Editor::load() {
+void Editor::saveToJson() {
+	QString filePath = QFileDialog::getSaveFileName(this, "Save File As",
+													QDir::homePath(),
+													"JSON Files (*.json);;All Files (*)");
+	if (filePath.isEmpty()) {
+		return;
+	}
+	QFile file(filePath);
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		return;
+	}
+
+	QJsonObject jsonObject;
+	QJsonArray materialsJson;
+	for (const auto& elem : polygonMaterials) {
+		materialsJson.append(QJsonValue(elem));
+	}
+	jsonObject["materials"] = materialsJson;
+
+	QJsonArray edgePropertiesJson;
+	for (const auto& elem : edgeProperties) {
+		edgePropertiesJson.append(QJsonValue(elem));
+	}
+	jsonObject["edge_properties"] = edgePropertiesJson;
+
+	QJsonArray polygonsJson;
+	for (const auto& polygon : all_polygons) {
+		QJsonObject polygonJson;
+		polygonJson["name"] = polygon.name();
+		polygonJson["material"] = QString::number(polygon.material());
+
+		QJsonArray verticesJson;
+		for (const auto& vertexId : polygon.vertices) {
+			QJsonObject vertexJson;
+			Vertex& vertex = all_vertices[vertexId];
+			vertexJson["name"] = vertex.name();
+			vertexJson["x"] = vertex.x();
+			vertexJson["y"] = vertex.y();
+			verticesJson.append(vertexJson);
+		}
+		polygonJson["vertices"] = verticesJson;
+
+		QJsonArray edgesJson;
+		for (const auto& edgeId : polygon.edges) {
+			QJsonObject edgeJson;
+			Edge& edge = all_edges[edgeId];
+			edgeJson["name"] = edge.name();
+			edgeJson["property"] = edge.get_property();
+			edgesJson.append(edgeJson);
+		}
+		polygonJson["edges"] = edgesJson;
+
+		polygonsJson.append(polygonJson);
+	}
+	jsonObject["polygons"] = polygonsJson;
+
+	QJsonDocument jsonDoc(jsonObject);
+	file.write(jsonDoc.toJson(QJsonDocument::Indented));
+	file.close();
+}
+
+void Editor::loadFromJson() {
+	resetEditor();
+	QString fileName = QFileDialog::getOpenFileName(this, "Open JSON File", "", "JSON Files (*.json);;All Files (*)");
+	QFile file(fileName);
+	QString error;
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		error = file.errorString();
+		return;
+	}
+	QByteArray jsonData = file.readAll();
+	file.close();
+
+	QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+	QJsonObject jsonRoot = doc.object();
+	QJsonArray polygonsArray = jsonRoot["polygons"].toArray();
+
+	QJsonArray materialArray = jsonRoot["materials"].toArray();
+	polygonMaterials.clear();
+	for (const auto& materialValue : materialArray) {
+		polygonMaterials.append(materialValue.toString());
+	}
+	ui->polygonMaterial->clear();
+	ui->polygonMaterial->addItems(polygonMaterials);
+
+
+	edgeProperties.clear();
+	for (const auto& propertyValue : jsonRoot["edge_properties"].toArray()) {
+		edgeProperties.append(propertyValue.toString());
+	}
+
+	for (const auto& polygonValue : polygonsArray) {
+		QJsonObject polygon = polygonValue.toObject();
+
+		ui->polygonNameEdit->setText(polygon["name"].toString());
+
+		int materialIndex = ui->polygonMaterial->findText(polygon["material"].toString());
+		if (materialIndex == -1) {
+			QMessageBox::warning(this, "Error loading polygons", "Polygon named " + polygon["name"].toString() + " has incorrect material; loading from JSON aborted");
+			resetEditor();
+			return;
+		}
+		ui->polygonMaterial->setCurrentIndex(materialIndex);
+
+		QJsonArray vertices = polygon["vertices"].toArray();
+		int curRow = 0;
+		for (const auto& vertexValue : vertices) {
+			QJsonObject vertex = vertexValue.toObject();
+
+			QString name = vertex["name"].toString();
+			double x = vertex["x"].toDouble();
+			double y = vertex["y"].toDouble();
+
+			addVRow(curRow, name, x, y);
+			++curRow;
+		}
+
+		curRow = 0;
+		QJsonArray edges = polygon["edges"].toArray();
+		for (const auto& edgeValue : edges) {
+			QJsonObject edge = edgeValue.toObject();
+
+			QString name = edge["name"].toString();
+			QString property = edge["property"].toString();
+
+			addERow(curRow, name, property);
+			++curRow;
+		}
+		savePolygon();
+	}
+
 	// testing polygon
 	// triangle
-	resetEditor();
-	addVRow(0, "V" + QString::number(polygonNumber) + "_0", 300.0, 0.0);
-	addVRow(1, "V" + QString::number(polygonNumber) + "_1", 700.0, 500.0);
-	addVRow(2, "V" + QString::number(polygonNumber) + "_2", 900.0, 200.0);
-	savePolygon();
+	// resetEditor();
+	// addVRow(0, "V" + QString::number(polygonNumber) + "_0", 300.0, 0.0);
+	// addVRow(1, "V" + QString::number(polygonNumber) + "_1", 700.0, 500.0);
+	// addVRow(2, "V" + QString::number(polygonNumber) + "_2", 900.0, 200.0);
 	// square
 	// addVRow(0, "V" + QString::number(polygonNumber) + "_0", 100.0, 100.0);
 	// addVRow(1, "V" + QString::number(polygonNumber) + "_1", 100.0, 400.0);
 	// addVRow(2, "V" + QString::number(polygonNumber) + "_2", 400.0, 400.0);
 	// addVRow(3, "V" + QString::number(polygonNumber) + "_3", 400.0, 100.0);
 	// savePolygon();
-	ui->loadBtn->hide();
+	// ui->loadBtn->hide();
 }
 
 // Add Row for Vertex and Edge table
@@ -174,6 +315,10 @@ void Editor::addVRow(int row, QString vName, double x, double y) {
 
 	clearNew();
 
+	buffer.append(QVector2D(x, y));
+}
+
+void Editor::addERow(int row, QString name = "", QString property = "") {
 	// edge table
 	etable->insertRow(row);
 	QLineEdit *edgeNameEdit = new QLineEdit(this);
@@ -182,14 +327,23 @@ void Editor::addVRow(int row, QString vName, double x, double y) {
 	edgeNameEdit->setPlaceholderText(
 		defaultEdgeName); // Зачем нужна эта строчка, дальше идет сразу
 						  // заполняется текст?
-	edgeNameEdit->setText(defaultEdgeName);
+	if (name != "") {
+		edgeNameEdit->setText(name);
+	} else {
+		edgeNameEdit->setText(defaultEdgeName);
+	}
 	etable->setCellWidget(row, 0, edgeNameEdit);
 	edgeNameEdit->setEnabled(false);
 
 
 	QComboBox *materialCombo = new QComboBox(this);
-	materialCombo->addItems(properties);
+	materialCombo->addItems(edgeProperties);
+	int propertyIdx = 0;
+	if (property != "") {
+		propertyIdx = materialCombo->findText(property);
+	}
 	etable->setCellWidget(row, 1, materialCombo);
+	materialCombo->setCurrentIndex(propertyIdx);
 	materialCombo->setEnabled(false);
 
 	QPushButton *edgeEditBtn = new QPushButton(this);
@@ -207,7 +361,6 @@ void Editor::addVRow(int row, QString vName, double x, double y) {
 	edgeEditSaveStack->addWidget(edgeSaveBtn);
 	etable->setCellWidget(row, 2, edgeEditSaveStackW);
 
-	buffer.append(QVector2D(x, y));
 }
 
 void Editor::editEdge(int row) {
@@ -294,6 +447,7 @@ void Editor::addVertex() {
 
 	// addVertexRow(row, name, x, y);
 	addVRow(row, name, x, y);
+	addERow(row);
 }
 
 // Change addMode to editMode
@@ -565,11 +719,12 @@ void Editor::setupExistingPolygon(Polygon *polygon) {
 		QString property = QString::number(e.get_property());
 		// auto material = e.get_property();
 
-		qobject_cast<QLineEdit *>(etable->cellWidget(i, 0))
-			->setText(eName);
-		QComboBox* cbox = qobject_cast<QComboBox *>(etable->cellWidget(i, 1));
-		int idx = cbox->findText(property);
-		cbox->setCurrentIndex(idx);
+		addERow(i, eName, property);
+		// qobject_cast<QLineEdit *>(etable->cellWidget(i, 0))
+			// ->setText(eName);
+		// QComboBox* cbox = qobject_cast<QComboBox *>(etable->cellWidget(i, 1));
+		// int idx = cbox->findText(property);
+		// cbox->setCurrentIndex(idx);
 		dock->show();
 		emit Mediator::instance() -> onBufferConnect(&buffer, polygon);
 	}

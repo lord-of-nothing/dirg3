@@ -6,6 +6,7 @@
 #include <QPointF>
 #include <QVector2D>
 #include <QPolygonF>
+#include <QScrollBar>
 
 Area::Area(QWidget *parent) : QWidget{parent} {
 	// connect(Mediator::instance(), &Mediator::bufferConnect, this,
@@ -29,6 +30,7 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 	painter.begin(this);
 	painter.translate(coordOffset, coordOffset);
 	painter.setRenderHint(QPainter::Antialiasing);
+	painter.scale(scaleFactor, scaleFactor);
 
 	// рамка
 	QPen axisPen;
@@ -132,7 +134,7 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 
 void Area::mousePressEvent(QMouseEvent *event) {
 	if (event->button() == Qt::LeftButton) {
-		auto pos = mapFromGlobal(event->globalPosition().toPoint());
+		auto pos = mapFromGlobal(event->globalPosition().toPoint()) / scaleFactor;
 		auto candidates = find_polygons_by_point({pos.x() - coordOffset, pos.y() - coordOffset});
 		if (candidates.size() == 0) {
 			// emit Mediator::instance()
@@ -166,6 +168,34 @@ void Area::mousePressEvent(QMouseEvent *event) {
 		#endif
 	}
 }
+
+void Area::wheelEvent(QWheelEvent *event) {
+	auto mousePos = mapFromGlobal(event->globalPosition().toPoint());
+	auto oldPos = event->position();
+
+	double currentFactor = 1;
+	if (event->angleDelta().y() > 0) {
+		currentFactor = scaleStep;
+	} else {
+		currentFactor = 1.0 / scaleStep;
+	}
+	scaleFactor *= currentFactor;
+	if (scaleFactor < 1) {
+		scaleFactor = 1;
+	} else if (scaleFactor > 3) {
+		scaleFactor = 3;
+	}
+	updateSize(1000 * scaleFactor, 1000 * scaleFactor);
+
+	// emit Mediator::instance()->onZoom(oldPos, mousePos * currentFactor);
+	// repaint();
+}
+
+void Area::updateSize(double width, double height) {
+	setMinimumSize(width, height);
+	repaint();
+}
+
 #if 0
 // В теории тут будем ещё отслеживать мышку, для изменения курсора при наведении
 // на точку

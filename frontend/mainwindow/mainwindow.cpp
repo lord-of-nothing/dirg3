@@ -5,6 +5,7 @@
 #include <QPalette>
 #include <QAction>
 #include <QMenu>
+#include <QScrollBar>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -25,6 +26,13 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->tree->setHeaderHidden(true);
 	connect(ui->newPolygonBtn, &QPushButton::released, this,
 			&MainWindow::newPolygon);
+
+	// save to json
+	connect(ui->actionSave_As, &QAction::triggered, this,
+			[this]() { emit Mediator::instance()->onSaveToJson(); });
+	// load from json
+	connect(ui->actionOpen_File, &QAction::triggered, this,
+			[this]() { emit Mediator::instance()->onLoadFromJson(); });
 
 	// double click (open editor)
 	connect(ui->tree, &QTreeWidget::itemDoubleClicked, this,
@@ -126,6 +134,19 @@ MainWindow::MainWindow(QWidget *parent)
 	addAction(actionClose);
 	QObject::connect(actionClose, &QAction::triggered, this,
 					 &QCoreApplication::quit);
+}
+
+void MainWindow::onZoomReceived(QPointF oldPos, QPointF newPos) {
+	auto* scrollArea = ui->scrollArea;
+
+	int oldScrollX = scrollArea->horizontalScrollBar()->value();
+	int oldScrollY = scrollArea->verticalScrollBar()->value();
+
+	int newScrollX = oldScrollX + newPos.x() - oldPos.x();
+	int newScrollY = oldScrollY + newPos.y() - oldPos.y();
+
+	scrollArea->horizontalScrollBar()->setValue(newScrollX);
+	scrollArea->verticalScrollBar()->setValue(newScrollY);
 }
 
 void MainWindow::newPolygon() {

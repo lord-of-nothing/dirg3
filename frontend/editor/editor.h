@@ -35,7 +35,8 @@ private slots:
 	void onEdgeSelectReceived(Edge* edge);
 
 	void addVertex();
-	void load(); // testing
+	void loadFromJson();
+	void saveToJson();
 
 	// void addVertexByMouse(QPoint *point); // add new point
 	// void editVertexCoord(
@@ -44,8 +45,10 @@ private slots:
 
 private:
 	void updateTableSize();
+	void loadError();
 	// void addVertexRow(int row, QString vName, double x, double y);
 	void addVRow(int row, QString vName, double x, double y);
+	void addERow(int row, QString name, QString property);
 
 	void saveVertex(int row);
 	void resetVertex(int row);
@@ -80,6 +83,8 @@ private:
 	const double minCoord = 0.0;
 	const double maxCoord = 1000.0;
 	const int precision = 3;
+	QVector<QString> polygonMaterials;
+	QVector<QString> edgeProperties;
 };
 
 #endif // EDITOR_H

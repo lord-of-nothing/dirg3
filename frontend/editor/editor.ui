@@ -38,7 +38,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="polygonMaterial"/>
+          <widget class="QComboBox" name="polygonMaterial">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -123,7 +130,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,10,0,80">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,10,80">
      <property name="sizeConstraint">
       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
      </property>
@@ -138,13 +145,6 @@
       <widget class="QPushButton" name="cancelBtn">
        <property name="text">
         <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="loadBtn">
-       <property name="text">
-        <string/>
        </property>
       </widget>
      </item>

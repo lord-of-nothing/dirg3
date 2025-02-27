@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include <QMouseEvent>
 #include <QWidget>
+#include <QScrollArea>
 
 class Mediator : public QObject {
 	Q_OBJECT
@@ -31,6 +32,10 @@ signals:
 	void onPolygonHighlight(Polygon* poly);
 	void onHighlightReset();
 	void onEditingExit();
+	void onZoom(QPointF oldPos, QPointF newPos);
+
+	void onSaveToJson();
+	void onLoadFromJson();
 
 	// void addNewVertex(QPoint *point);
 	// void editVertexMouse(int row);
@@ -49,6 +54,7 @@ public:
 protected:
 	void paintEvent(QPaintEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
+	void wheelEvent(QWheelEvent *event) override;
 	// void mouseMoveEvent(QMouseEvent *event) override;
 	// void mouseReleaseEvent(QMouseEvent *event) override;
 
@@ -61,12 +67,18 @@ private slots:
 	void onPolygonHighlightReceived(Polygon* poly);
 
 private:
+	void updateSize(double width, double height);
+
+	// QScrollArea* scrollArea = qobject_cast<QScrollArea*>(parentWidget());
+	QScrollArea* scrollArea;
 	QVector<QVector2D> *bufferData = nullptr;
 	Polygon *edited;
 	Polygon *highlighted;
 	QPointF pointH;
 	QLineF lineH;
 	const int coordOffset = 25;
+	double scaleFactor = 1;
+	const double scaleStep = 1.15;
 
 	// int draggingVertex =
 		// -1;			   // Index of dragged vertex (-1 if no vertex is dragged)
