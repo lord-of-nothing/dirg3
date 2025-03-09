@@ -29,6 +29,7 @@ private:
 	void newPolygon();
 	void saveToJson();
 	void selectPolygon(QUuid id);
+	void resetEverything();
 	// void selectEdge(QUuid id);
 	// void selectVertex(QUuid id);
 	// Editor editor;

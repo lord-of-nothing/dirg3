@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(Mediator::instance(), &Mediator::onPolygonSelect, this, &MainWindow::onPolygonSelectReceived);
 	connect(Mediator::instance(), &Mediator::onEditorReset, this, &MainWindow::onEditingExitReceived);
+	connect(Mediator::instance(), &Mediator::onResetEverything, this, &MainWindow::resetEverything);
 
 	connect(ui->editorDock, &QDockWidget::visibilityChanged, this, [this]() {
 		if (!ui->editorDock->isVisible()) {
@@ -27,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->newPolygonBtn, &QPushButton::released, this,
 			&MainWindow::newPolygon);
 
+	// new file
+	connect(ui->actionNew_file, &QAction::triggered, this,
+			[this]() { emit Mediator::instance()->onResetEverything(); });
 	// save to json
 	connect(ui->actionSave_As, &QAction::triggered, this,
 			[this]() { emit Mediator::instance()->onSaveToJson(); });
@@ -136,6 +140,7 @@ MainWindow::MainWindow(QWidget *parent)
 					 &QCoreApplication::quit);
 }
 
+
 void MainWindow::onZoomReceived(QPointF oldPos, QPointF newPos) {
 	auto* scrollArea = ui->scrollArea;
 
@@ -210,6 +215,15 @@ void MainWindow::selectPolygon(QUuid id) {
 	Polygon *polygon = &all_polygons[id];
 	ui->editorDock->show();
 	emit Mediator::instance() -> onPolygonSelect(polygon);
+}
+
+void MainWindow::resetEverything() {
+	ui->tree->clear();
+	all_edges.clear();
+	all_vertices.clear();
+	all_polygons.clear();
+	Polygon::reset_polygons_total();
+	ui->paintArea->repaint();
 }
 
 MainWindow::~MainWindow() { delete ui; }

@@ -37,6 +37,8 @@ signals:
 	void onSaveToJson();
 	void onLoadFromJson();
 
+	void onResetEverything();
+
 	// void addNewVertex(QPoint *point);
 	// void editVertexMouse(int row);
 	// void editVertexCoordMouse(int row, QPoint *new_coord);

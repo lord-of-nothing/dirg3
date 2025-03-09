@@ -30,6 +30,7 @@ public:
 	void delete_polygon();
 
 	static inline int get_polygons_total() { return total_polygon_number; }
+	static inline void reset_polygons_total() { total_polygon_number = 0; }
 
 	QVector<QUuid> edges;
 	QVector<QUuid> vertices;

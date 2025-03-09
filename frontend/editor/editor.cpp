@@ -184,6 +184,7 @@ void Editor::saveToJson() {
 }
 
 void Editor::loadFromJson() {
+	emit Mediator::instance()->onResetEverything();
 	resetEditor();
 	QString fileName = QFileDialog::getOpenFileName(this, "Open JSON File", "", "JSON Files (*.json);;All Files (*)");
 	QFile file(fileName);
