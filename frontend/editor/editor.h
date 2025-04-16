@@ -47,7 +47,7 @@ private:
 	void updateTableSize();
 	void loadError();
 	// void addVertexRow(int row, QString vName, double x, double y);
-	void addVRow(int row, QString vName, double x, double y);
+	void addVRow(int row, QString vName, double x, double y, int isDivider);
 	void addERow(int row, QString name, QString property);
 
 	void saveVertex(int row);
@@ -76,7 +76,7 @@ private:
 	QIcon saveIcon = style()->standardIcon(QStyle::SP_DialogApplyButton);
 	QIcon resetIcon = style()->standardIcon(QStyle::SP_DialogCancelButton);
 
-	QVector<QVector2D> buffer;
+	QVector<QVector3D> buffer;
 	QString editedEdgeName;
 	QString editedEdgeProperty;
 

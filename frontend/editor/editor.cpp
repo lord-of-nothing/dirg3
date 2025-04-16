@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QCheckBox>
 
 
 Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
@@ -33,9 +34,9 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	ui->polygonMaterial->addItems(polygonMaterials);
 
 	// vertexTable setUp
-	vtable->setColumnCount(5);
+	vtable->setColumnCount(6);
 	vtable->setHorizontalHeaderLabels(QStringList()
-									  << "Name" << "X" << "Y" << "" << "");
+									  << "Name" << "X" << "Y" << "" << "" << "");
 	vtable->horizontalHeader()->setSectionsClickable(false);
 	vtable->horizontalHeader()->setSectionsMovable(false);
 	vtable->horizontalHeader()->setStyleSheet("QHeaderView::section {"
@@ -87,6 +88,17 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	vtable->setCellWidget(0, 3, addBtn);
 	polygonNumber = Polygon::get_polygons_total();
 	addBtn->setIcon(addIcon);
+
+	QCheckBox *dividerChk = new QCheckBox(this);
+	QWidget *dividerContainer = new QWidget(this);
+	QHBoxLayout* layout = new QHBoxLayout(dividerContainer);
+	layout->setAlignment(Qt::AlignCenter);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addStretch();
+	layout->addWidget(dividerChk);
+	layout->addStretch();
+	dividerContainer->setLayout(layout);
+	vtable->setCellWidget(0, 5, dividerContainer);
 
 
 	// opening editor on polygon selection
@@ -235,8 +247,9 @@ void Editor::loadFromJson() {
 			QString name = vertex["name"].toString();
 			double x = vertex["x"].toDouble();
 			double y = vertex["y"].toDouble();
+			bool isDivider = vertex["isDivider"].toBool();
 
-			addVRow(curRow, name, x, y);
+			addVRow(curRow, name, x, y, isDivider);
 			++curRow;
 		}
 
@@ -270,7 +283,7 @@ void Editor::loadFromJson() {
 }
 
 // Add Row for Vertex and Edge table
-void Editor::addVRow(int row, QString vName, double x, double y) {
+void Editor::addVRow(int row, QString vName, double x, double y, int isDivider) {
 	// int row = vtable->rowCount() - 1;
 
 	QLineEdit *nameEdit = new QLineEdit(this);
@@ -293,10 +306,22 @@ void Editor::addVRow(int row, QString vName, double x, double y) {
 	yEdit->setValue(y);
 	yEdit->setEnabled(false);
 
+	QCheckBox *dividerChk = new QCheckBox(this);
+	dividerChk->setCheckState(isDivider ? Qt::Checked : Qt::Unchecked);
+	QWidget *dividerContainer = new QWidget(this);
+	QHBoxLayout* layout = new QHBoxLayout(dividerContainer);
+	layout->setAlignment(Qt::AlignCenter);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addStretch();
+	layout->addWidget(dividerChk);
+	layout->addStretch();
+	dividerContainer->setLayout(layout);
+
 	vtable->insertRow(row);
 	vtable->setCellWidget(row, 0, nameEdit);
 	vtable->setCellWidget(row, 1, xEdit);
 	vtable->setCellWidget(row, 2, yEdit);
+	vtable->setCellWidget(row, 5, dividerContainer);
 
 	QPushButton *editBtn = new QPushButton(this);
 	connect(editBtn, &QPushButton::released, this,
@@ -316,7 +341,7 @@ void Editor::addVRow(int row, QString vName, double x, double y) {
 
 	clearNew();
 
-	buffer.append(QVector2D(x, y));
+	buffer.append(QVector3D(x, y, isDivider));
 }
 
 void Editor::addERow(int row, QString name = "", QString property = "") {
@@ -389,8 +414,8 @@ void Editor::editEdge(int row) {
 	editedEdgeProperty = qobject_cast<QComboBox*>(etable->cellWidget(row, 1))->currentText();
 
 
-	QVector2D first_vertex = buffer[row];
-	QVector2D second_vertex = buffer[(row + 1) % buffer.size()];
+	QVector3D first_vertex = buffer[row];
+	QVector3D second_vertex = buffer[(row + 1) % buffer.size()];
 	QLineF edge_line({first_vertex[0], first_vertex[1]}, {second_vertex[0], second_vertex[1]});
 	emit Mediator::instance()->onLineHighlight(edge_line);
 }
@@ -425,7 +450,6 @@ void Editor::finishEditEdge(int row) {
 		etable->cellWidget(i, 2)->setEnabled(true);
 	}
 
-
 	emit Mediator::instance()->onHighlightReset();
 }
 
@@ -446,8 +470,11 @@ void Editor::addVertex() {
 	double y =
 		static_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 2))->value();
 
+	QCheckBox *dividerCheckbox = vtable->cellWidget(row, 5)->findChild<QCheckBox*>();
+	int isDivider = dividerCheckbox->isChecked() ? 1 : 0;
+
 	// addVertexRow(row, name, x, y);
-	addVRow(row, name, x, y);
+	addVRow(row, name, x, y, isDivider);
 	addERow(row);
 }
 
@@ -486,8 +513,9 @@ void Editor::saveVertex(int row) {
 		qobject_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 1))->value();
 	double y =
 		qobject_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 2))->value();
+	bool isDivider = vtable->cellWidget(row, 5)->findChild<QCheckBox*>()->isChecked() ? 1 : 0;
 
-	buffer[row] = QVector2D(x, y);
+	buffer[row] = QVector3D(x, y, isDivider);
 }
 
 void Editor::resetVertex(int row) {
@@ -525,16 +553,17 @@ void Editor::clearNew() {
 								 QString::number(row));
 	static_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 1))->setValue(0);
 	static_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 2))->setValue(0);
+	vtable->cellWidget(row, 5)->findChild<QCheckBox*>()->setCheckState(Qt::Unchecked);
 }
 
 void Editor::updateTableSize() {
 	// vertex table
 	auto tableWidth = vtable->width();
 	for (auto col = 0; col < 3; ++col) {
-		vtable->setColumnWidth(col, tableWidth * 0.3);
+		vtable->setColumnWidth(col, tableWidth * 0.28);
 	}
 	for (auto col = 3; col < 6; ++col) {
-		vtable->setColumnWidth(col, tableWidth * 0.04);
+		vtable->setColumnWidth(col, tableWidth * 0.03);
 	}
 
 	// edge table
@@ -562,24 +591,36 @@ void Editor::onBufferConnect() {
 }
 
 void Editor::savePolygon() {
-	if (etable->rowCount() < 3) {
+	if (etable->rowCount() < 4) {
 		QMessageBox::warning(this, "Incorrect input", "Not enough vertices");
 		return;
 	}
 
 	QVector<QString> vNames;
 	QVector<QPair<double, double>> vCoords;
+	QVector<bool> vDividers;
 	for (int row = 0; row < vtable->rowCount() - 1; ++row) {
 		QString vName = qobject_cast<QLineEdit*>(vtable->cellWidget(row, 0))->text();
 		double x =
 			qobject_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 1))->value();
 		double y =
 			qobject_cast<QDoubleSpinBox *>(vtable->cellWidget(row, 2))->value();
+		bool isDivider = vtable->cellWidget(row, 5)->findChild<QCheckBox*>()->isChecked() ? 1 : 0;
 		vNames.append(vName);
 		vCoords.emplaceBack(x, y);
+		vDividers.append(isDivider);
 	}
 	// CHECKS
 	// уникальность имён и координат вершин внутри полигона
+	int divCount = 0;
+	for (const auto& elem : vDividers) {
+		divCount += elem;
+	}
+	if (divCount != 4) {
+		QMessageBox::warning(this, "Incorrect input", "There should be exactly four divider vertices");
+		return;
+	}
+
 	QSet<QString> vNameCheck;
 	QSet<QPair<double, double>> vCoordCheck;
 	for (int row = 0; row < vtable->rowCount() - 1; ++row) {
@@ -641,7 +682,7 @@ void Editor::savePolygon() {
 
 	// создаём точки
 	for (int row = 0; row < etable->rowCount(); ++row) {
-		Vertex v(vCoords[row].first, vCoords[row].second, vNames[row]);
+		Vertex v(vCoords[row].first, vCoords[row].second, vNames[row], vDividers[row]);
 		vertices.append(v.id());
 	}
 
@@ -708,8 +749,9 @@ void Editor::setupExistingPolygon(Polygon *polygon) {
 		QString vName = v.name();
 		double x = v.x();
 		double y = v.y();
+		bool isDivider = v.isDivider();
 		// addVertexRow(vtable->rowCount() - 1, vName, x, y);
-		addVRow(vtable->rowCount() - 1, vName, x, y);
+		addVRow(vtable->rowCount() - 1, vName, x, y, isDivider);
 	}
 
 	// for (auto &eId : polygon->edges) {

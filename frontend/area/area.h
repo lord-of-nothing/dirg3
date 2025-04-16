@@ -20,7 +20,7 @@ signals:
     void polygonSelect(Polygon* polygon);
     void polygonAdd(Polygon* polygon);
 #endif
-	void onBufferConnect(QVector<QVector2D> *data, Polygon *editedP);
+	void onBufferConnect(QVector<QVector3D> *data, Polygon *editedP);
 	void onAreaRepaint();
 	void onPolygonSelect(Polygon *polygon);
 	void onEditorReset();
@@ -61,7 +61,7 @@ protected:
 	// void mouseReleaseEvent(QMouseEvent *event) override;
 
 private slots:
-	void onBufferConnectReceived(QVector<QVector2D> *data, Polygon *editedP);
+	void onBufferConnectReceived(QVector<QVector3D> *data, Polygon *editedP);
 	void resetHighlight();
 	void onPointHighlightReceived(QPointF point);
 	void onLineHighlightReceived(QLineF line);
@@ -73,7 +73,7 @@ private:
 
 	// QScrollArea* scrollArea = qobject_cast<QScrollArea*>(parentWidget());
 	QScrollArea* scrollArea;
-	QVector<QVector2D> *bufferData = nullptr;
+	QVector<QVector3D> *bufferData = nullptr;
 	Polygon *edited;
 	Polygon *highlighted;
 	QPointF pointH;

@@ -86,19 +86,27 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 	// редактируемый полигон
 	if (!(bufferData == nullptr || bufferData->size() == 0)) {
 		QPen editedPen;
+		QPen dividerPen;
 		editedPen.setWidth(4.0);
 		editedPen.setColor(Qt::red);
+		dividerPen.setWidth(4.0);
+		dividerPen.setColor(Qt::black);
 		painter.setPen(editedPen);
 
 		for (int i = 0; i < bufferData->size(); ++i) {
-			QVector2D point = bufferData[0][i];
-			QVector2D nextPoint;
+			QVector3D point = bufferData[0][i];
+			QVector3D nextPoint;
 			if (i < bufferData->size() - 1) {
 				nextPoint = bufferData[0][i + 1];
 			} else {
 				nextPoint = bufferData[0][0];
 			}
 			painter.drawEllipse(QPointF(point.x(), point.y()), 3.0, 3.0);
+			// if (point[2]) {
+				// painter.setPen(dividerPen);
+				// painter.drawEllipse(QPointF(point.x(), point.y()), 6.0, 6.0);
+				// painter.setPen(editedPen);
+			// }
 			painter.drawLine(QPointF(point.x(), point.y()),
 							 QPointF(nextPoint.x(), nextPoint.y()))	;
 		}
@@ -217,7 +225,7 @@ void Area::mouseReleaseEvent(QMouseEvent *event) {
 }
 #endif
 
-void Area::onBufferConnectReceived(QVector<QVector2D> *data, Polygon *editedP) {
+void Area::onBufferConnectReceived(QVector<QVector3D> *data, Polygon *editedP) {
 	if (bufferData == nullptr) {
 		bufferData = data;
 	}

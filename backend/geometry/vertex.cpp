@@ -9,8 +9,8 @@ QUuid Vertex::gen_uuid() {
 	return uuid_str;
 }
 
-Vertex::Vertex(const double x, const double y, const QString &name)
-	: x_(x), y_(y), name_(name) {
+Vertex::Vertex(const double x, const double y, const QString &name, const bool isDivider)
+	: x_(x), y_(y), name_(name), isDivider_(isDivider) {
 	id_ = gen_uuid();
 	all_vertices[id_] = *this;
 	all_names.insert(name);
