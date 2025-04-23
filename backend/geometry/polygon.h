@@ -6,13 +6,14 @@
 #include <QString>
 #include <QUuid>
 #include <QVector>
+#include <QPointF>
 
 class Polygon {
 public:
 	Polygon() = default;
 	Polygon(const QVector<QUuid> &v, const QVector<QUuid> &e,
-			const QString &name, const int material,
-			const int existingNumber = -1, const QUuid &existingId = QUuid(), const int layer = 0);
+			const QString &name, const int material, QVector<QUuid> separators,
+			const int existingNumber = -1, const QUuid &existingId = QUuid(), const int fineness = 1);
 
 	static QUuid gen_uuid();
 	inline auto id() const { return id_; }
@@ -20,6 +21,10 @@ public:
 	inline auto number() const { return cur_polygon_number_; }
 	inline auto layer() const { return layer_; }
 	inline auto material() const { return material_; }
+	inline auto fineness() const { return fineness_; }
+	inline auto separators() const { return separators_; }
+	// inline auto grid() const { return grid_; }
+	const QVector<QPointF> grid() { return grid_; }
 
 	auto &next_vertex(const QUuid &current_vertex) const;
 	auto &prev_vertex(const QUuid &current_vertex) const;
@@ -31,9 +36,12 @@ public:
 
 	static inline int get_polygons_total() { return total_polygon_number; }
 	static inline void reset_polygons_total() { total_polygon_number = 0; }
+	
 
+	
 	QVector<QUuid> edges;
 	QVector<QUuid> vertices;
+	QVector<QUuid> contacts;
 
 private:
 	QString name_;
@@ -42,6 +50,9 @@ private:
 	[[maybe_unused]] int material_;
 	QUuid id_;
 	int layer_;
+	int fineness_;
+	QVector<QUuid> separators_;
+	QVector<QPointF> grid_;
 };
 
 inline QHash<QUuid, Polygon> all_polygons;

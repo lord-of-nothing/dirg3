@@ -2,6 +2,7 @@
 
 #include <QRandomGenerator>
 #include <QUuid>
+#include <QPointF>
 
 // bool check_convex(double first_x, double first_y, double second_x,
 // 				  double second_y, double third_x, double third_y) {
@@ -185,3 +186,169 @@ bool checkNestingInOnceLayer(QVector<QPair<double, double>> vertices, int layer)
 // bool checkPolygon(QVector<QPair<double, double>> vertices) {
 // 	return checkConvex(vertices) && checkNotIntersecting(vertices);
 // }
+
+auto possible_links(QUuid first_polygon, QUuid second_polygon) {
+	for (QUuid edge : all_polygons[first_polygon].edges){
+		QPair<QUuid, QUuid> edge_coords = all_edges[edge].coords();
+		double length_edge = std::sqrt((all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) * (all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) + (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()) * (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()));
+		QUuid vertex_on_edge;
+		QUuid vertex_on_line;
+		for (QUuid vertex : all_polygons[second_polygon].vertices) {
+			double first_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()));
+			double second_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()));
+			if (std::abs(length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()){
+				vertex_on_edge = vertex;
+			} else if (std::abs(2 * std::max(length_edge, std::max(first_dist, second_dist)) - length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()) {
+				vertex_on_edge = vertex;
+			}
+		}
+		if (!vertex_on_edge.isNull() && !vertex_on_line.isNull()) {
+			QPair<QUuid, QUuid> result = {vertex_on_edge, vertex_on_line};
+			return result;
+		}
+	}
+	QPair<QUuid, QUuid> result;
+	return result;
+}
+
+auto all_possible_links(QUuid polygon) {
+	QVector<QPair<QUuid, QUuid>> links;
+	for (QUuid poly : all_polygons.keys()) {
+		if (poly != polygon) {
+			QPair<QUuid, QUuid> link = possible_links(polygon, poly);
+			if (!link.first.isNull() && !link.second.isNull()) {
+				links.push_back(link);
+			}
+		}
+	}
+	return links;
+}
+
+double lengthSides(QUuid first_vertex, QUuid second_vertex) {
+	double dx = all_vertices[first_vertex].x() - all_vertices[second_vertex].x();
+	double dy = all_vertices[first_vertex].y() - all_vertices[second_vertex].y();
+	return std::sqrt(dx * dx + dy * dy);
+}
+
+QVector<QPointF> splitCurve(QVector<QUuid> vertices, int fineness) {
+	QVector<QPointF> result_split;
+
+	QVector<double> current_lengths;
+	current_lengths.push_back(0.0);
+	for (int i = 1; i < vertices.size(); i++) {
+		double len = lengthSides(vertices[i - 1], vertices[i]);
+		current_lengths.push_back(current_lengths[current_lengths.size() - 1] + len);
+	}
+
+	double all_length = current_lengths[current_lengths.size() - 1];
+	double segment_length = all_length / fineness;
+
+	result_split.push_back({all_vertices[vertices[0]].x(), all_vertices[vertices[0]].y()});
+
+	for (int m = 1; m < fineness; m++) {
+		double cur_d = m * segment_length;
+
+		int i = 0;
+		while (i < current_lengths.size() - 1 && current_lengths[i + 1] < cur_d) {
+			i++;
+		}
+
+		if (i >= current_lengths.size() - 1) {
+			break;
+		}
+
+		double remainder = cur_d - current_lengths[i];
+		double cur_segment_len = current_lengths[i + 1] - current_lengths[i];
+
+		double t = remainder / cur_segment_len;
+		QPointF point;
+		point.setX(all_vertices[vertices[i]].x() + t * (all_vertices[vertices[i + 1]].x() - all_vertices[vertices[i]].x()));
+		point.setY(all_vertices[vertices[i]].y() + t * (all_vertices[vertices[i + 1]].y() - all_vertices[vertices[i]].y()));
+		result_split.push_back(point);
+	}
+
+	result_split.push_back({all_vertices[vertices[vertices.size() - 1]].x(), all_vertices[vertices[vertices.size() - 1]].y()});
+	return result_split;
+}
+
+QPointF point_intersection(QPointF a1, QPointF a2, QPointF b1, QPointF b2) {
+	double dx1 = a2.x() - a1.x();
+	double dy1 = a2.y() - a1.y();
+	double dx2 = b2.x() - b1.x();
+	double dy2 = b2.y() - b1.y();
+
+	double det = dx1 * dy2 - dx2 * dy1;
+	double t_numerator = (b1.x() - a1.x()) * dy2 - (b1.y() - a1.y()) * dx2;
+	double t = t_numerator / det;
+
+	return {a1.x() + t * dx1, a1.y() + t * dy1};
+
+}
+
+QVector<QPointF> gridPolygon(const QVector<QUuid> &vertices, QVector<QUuid> sep, int fineness) {
+	QVector<QUuid> first_side;
+	QVector<QUuid> second_side;
+	QVector<QUuid> third_side;
+	QVector<QUuid> fourth_side;
+
+	int index_first = 0;
+	int index_second = 0;
+	int index_third = 0;
+	int index_fourth = 0;
+
+	for (int i = 0; i < vertices.size(); i++) {
+		if (vertices[i] == sep[0]) {
+			index_first = i;
+		}
+		if (vertices[i] == sep[1]) {
+			index_second = i;
+		}
+		if (vertices[i] == sep[2]) {
+			index_third = i;
+		}
+		if (vertices[i] == sep[3]) {
+			index_fourth = i;
+		}
+
+	}
+
+	for (int i = index_first; i <= index_second; i++) {
+		first_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_second; i <= index_third; i++) {
+		second_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_third; i <= index_fourth; i++) {
+		third_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_fourth; i < vertices.size(); i++) {
+		fourth_side.push_back(vertices[i]);
+	}
+
+	for (int i = 0; i <= index_first; i++) {
+		fourth_side.push_back(vertices[i]);
+	}
+
+	QVector<QPointF> first_side_grid = splitCurve(first_side, fineness);
+	QVector<QPointF> second_side_grid = splitCurve(second_side, fineness);
+	QVector<QPointF> third_side_grid = splitCurve(third_side, fineness);
+	QVector<QPointF> fourth_side_grid = splitCurve(fourth_side, fineness);
+
+	QVector<QPointF> grid;
+
+	for (int i = 0; i < first_side_grid.size(); i++) {
+		for (int j = 0; j < second_side_grid.size(); j++) {
+			grid.push_back(point_intersection(first_side_grid[i], third_side_grid[first_side_grid.size() - i - 1], second_side_grid[j], fourth_side_grid[first_side_grid.size() - j - 1]));
+		}
+	}
+
+	return grid;
+
+
+}
+
+
+

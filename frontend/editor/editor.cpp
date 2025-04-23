@@ -598,7 +598,7 @@ void Editor::savePolygon() {
 
 	QVector<QString> vNames;
 	QVector<QPair<double, double>> vCoords;
-	QVector<bool> vDividers;
+	QVector<bool> vDividerIdx;
 	for (int row = 0; row < vtable->rowCount() - 1; ++row) {
 		QString vName = qobject_cast<QLineEdit*>(vtable->cellWidget(row, 0))->text();
 		double x =
@@ -608,12 +608,12 @@ void Editor::savePolygon() {
 		bool isDivider = vtable->cellWidget(row, 5)->findChild<QCheckBox*>()->isChecked() ? 1 : 0;
 		vNames.append(vName);
 		vCoords.emplaceBack(x, y);
-		vDividers.append(isDivider);
+		vDividerIdx.append(isDivider);
 	}
 	// CHECKS
 	// уникальность имён и координат вершин внутри полигона
 	int divCount = 0;
-	for (const auto& elem : vDividers) {
+	for (const auto& elem : vDividerIdx) {
 		divCount += elem;
 	}
 	if (divCount != 4) {
@@ -681,8 +681,13 @@ void Editor::savePolygon() {
 	QVector<QUuid> edges;
 
 	// создаём точки
+
+	QVector<QUuid> dividers;
 	for (int row = 0; row < etable->rowCount(); ++row) {
-		Vertex v(vCoords[row].first, vCoords[row].second, vNames[row], vDividers[row]);
+		Vertex v(vCoords[row].first, vCoords[row].second, vNames[row]);
+		if (vDividerIdx[row]) {
+			dividers.append(v.id());
+		}
 		vertices.append(v.id());
 	}
 
@@ -698,7 +703,7 @@ void Editor::savePolygon() {
 
 
 	// создаём полигон
-	Polygon *p = new Polygon(vertices, edges, name, material, polygonNumber, id);
+	Polygon *p = new Polygon(vertices, edges, name, material, dividers, polygonNumber, id, 10);
 
 	// emit Mediator::instance()->polygonAdd(&p);
 	// if (!id.isNull()) {
@@ -743,13 +748,14 @@ void Editor::setupExistingPolygon(Polygon *polygon) {
 	ui->polygonNameEdit->setPlaceholderText("P" + QString::number(polygonNumber));
 	ui->polygonNameEdit->setText(polygon->name());
 	ui->polygonMaterial->setCurrentText(QString::number(polygon->material()));
+	auto dividerId = editedPolygon->separators();
 	// emit Mediator::instance()->onBufferConnect(&buffer, polygon);
 	for (auto &vId : polygon->vertices) {
 		Vertex &v = all_vertices[vId];
 		QString vName = v.name();
 		double x = v.x();
 		double y = v.y();
-		bool isDivider = v.isDivider();
+		bool isDivider = dividerId.contains(vId);
 		// addVertexRow(vtable->rowCount() - 1, vName, x, y);
 		addVRow(vtable->rowCount() - 1, vName, x, y, isDivider);
 	}

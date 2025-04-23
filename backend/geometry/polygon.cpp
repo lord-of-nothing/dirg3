@@ -12,12 +12,11 @@ QUuid Polygon::gen_uuid() {
 }
 
 Polygon::Polygon(const QVector<QUuid> &vertices, const QVector<QUuid> &edges,
-				 const QString &name, const int material,
-				 const int existingNumber, const QUuid &existingId, const int layer)
+				 const QString &name, const int material, QVector<QUuid> separators,
+				 const int existingNumber, const QUuid &existingId, const int fineness)
 	: edges(edges), vertices(vertices), name_(name),
-	  cur_polygon_number_(existingNumber), material_(material), layer_(layer) {
+	  cur_polygon_number_(existingNumber), material_(material), fineness_(fineness), separators_(separators) {
 	id_ = (existingId.isNull()) ? gen_uuid() : existingId;
-	all_polygons[id_] = *this;
 	all_names.insert(name);
 
 	for (auto &edge : edges) {
@@ -28,6 +27,9 @@ Polygon::Polygon(const QVector<QUuid> &vertices, const QVector<QUuid> &edges,
 	}
 
 	total_polygon_number++;
+	grid_ = gridPolygon(vertices, separators, fineness);
+
+	all_polygons[id_] = *this;
 }
 
 auto &Polygon::next_vertex(const QUuid &current_vertex) const {

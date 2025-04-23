@@ -24,6 +24,9 @@ add_library(
 	STATIC 
 	${SOURCES}
 	${HEADERS}
+        contact.h
+        contact.cpp
+
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC OFF AUTOUIC OFF)

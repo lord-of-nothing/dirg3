@@ -81,6 +81,16 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 			painter.drawLine(QPointF(curV.x(), curV.y()),
 							 QPointF(nextV.x(), nextV.y()));
 		}
+
+		// сетки?
+		// normalPen.setWidth(1.0);
+		// normalPen.setColor(Qt::gray);
+		// painter.setPen(normalPen);
+		// for (const auto& node : polygon.grid()) {
+			// painter.drawEllipse(node, 1, 1);
+			// painter.drawPoint(node);
+		// }
+		painter.drawPoints(polygon.grid());
 	}
 
 	// редактируемый полигон

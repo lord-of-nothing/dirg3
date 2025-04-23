@@ -8,6 +8,7 @@
 #include <QUuid>
 #include <QVector>
 #include <map>
+#include <QPointF>
 
 #include "edge.h"
 #include "polygon.h"
@@ -42,6 +43,19 @@ bool checkNotIntersecting(QVector<QPair<double, double>> vertices);
 bool checkUniqueName(const QVector<QString>& names);
 
 bool checkNestingInOnceLayer(QVector<QPair<double, double>> vertices, int layer);
+
+auto possible_links(QUuid first_polygon, QUuid second_polygon);
+
+auto all_possible_links(QUuid polygon);
+
+double lengthSides(QUuid first_vertex, QUuid second_vertex);
+
+QVector<QPointF> splitCurve(QVector<QUuid> vertices, int fineness);
+
+QPointF point_intersection(QPointF a1, QPointF a2, QPointF b1, QPointF b2);
+
+QVector<QPointF> gridPolygon(const QVector<QUuid> &vertices, QVector<QUuid> sep, int fineness);
+
 
 // bool checkPolygon(QVector<QPair<double, double>> vertices);
 
