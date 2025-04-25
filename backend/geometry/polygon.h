@@ -25,6 +25,7 @@ public:
 	inline auto separators() const { return separators_; }
 	// inline auto grid() const { return grid_; }
 	const QVector<QPointF> grid() { return grid_; }
+	const QVector<QPair<QPointF, QPointF>> grid_lines() { return grid_lines_; }
 
 	auto &next_vertex(const QUuid &current_vertex) const;
 	auto &prev_vertex(const QUuid &current_vertex) const;
@@ -53,6 +54,7 @@ private:
 	int fineness_;
 	QVector<QUuid> separators_;
 	QVector<QPointF> grid_;
+	QVector<QPair<QPointF, QPointF>> grid_lines_;
 };
 
 inline QHash<QUuid, Polygon> all_polygons;

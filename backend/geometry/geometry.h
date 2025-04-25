@@ -56,6 +56,8 @@ QPointF point_intersection(QPointF a1, QPointF a2, QPointF b1, QPointF b2);
 
 QVector<QPointF> gridPolygon(const QVector<QUuid> &vertices, QVector<QUuid> sep, int fineness);
 
+QVector<QPair<QPointF, QPointF>> gridLine(const QVector<QUuid> &vertices, QVector<QUuid> sep, int fineness);
+
 
 // bool checkPolygon(QVector<QPair<double, double>> vertices);
 

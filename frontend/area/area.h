@@ -76,7 +76,7 @@ private:
 	QVector<QVector3D> *bufferData = nullptr;
 	Polygon *edited;
 	Polygon *highlighted;
-	QPointF pointH;
+	QPointF pointH = QPointF(-1, -1);
 	QLineF lineH;
 	const int coordOffset = 25;
 	double scaleFactor = 1;

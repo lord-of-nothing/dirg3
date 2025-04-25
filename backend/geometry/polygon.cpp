@@ -28,6 +28,7 @@ Polygon::Polygon(const QVector<QUuid> &vertices, const QVector<QUuid> &edges,
 
 	total_polygon_number++;
 	grid_ = gridPolygon(vertices, separators, fineness);
+	grid_lines_ = gridLine(vertices, separators, fineness);
 
 	all_polygons[id_] = *this;
 }

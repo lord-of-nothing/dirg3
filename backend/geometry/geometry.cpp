@@ -341,13 +341,75 @@ QVector<QPointF> gridPolygon(const QVector<QUuid> &vertices, QVector<QUuid> sep,
 
 	for (int i = 0; i < first_side_grid.size(); i++) {
 		for (int j = 0; j < second_side_grid.size(); j++) {
-			grid.push_back(point_intersection(first_side_grid[i], third_side_grid[first_side_grid.size() - i - 1], second_side_grid[j], fourth_side_grid[first_side_grid.size() - j - 1]));
+			grid.push_back(point_intersection(first_side_grid[i], third_side_grid[third_side_grid.size() - i - 1], second_side_grid[j], fourth_side_grid[fourth_side_grid.size() - j - 1]));
 		}
 	}
 
 	return grid;
+}
 
+QVector<QPair<QPointF, QPointF>> gridLine(const QVector<QUuid> &vertices, QVector<QUuid> sep, int fineness) {
+	QVector<QUuid> first_side;
+	QVector<QUuid> second_side;
+	QVector<QUuid> third_side;
+	QVector<QUuid> fourth_side;
 
+	int index_first = 0;
+	int index_second = 0;
+	int index_third = 0;
+	int index_fourth = 0;
+
+	for (int i = 0; i < vertices.size(); i++) {
+		if (vertices[i] == sep[0]) {
+			index_first = i;
+		}
+		if (vertices[i] == sep[1]) {
+			index_second = i;
+		}
+		if (vertices[i] == sep[2]) {
+			index_third = i;
+		}
+		if (vertices[i] == sep[3]) {
+			index_fourth = i;
+		}
+
+	}
+
+	for (int i = index_first; i <= index_second; i++) {
+		first_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_second; i <= index_third; i++) {
+		second_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_third; i <= index_fourth; i++) {
+		third_side.push_back(vertices[i]);
+	}
+
+	for (int i = index_fourth; i < vertices.size(); i++) {
+		fourth_side.push_back(vertices[i]);
+	}
+
+	for (int i = 0; i <= index_first; i++) {
+		fourth_side.push_back(vertices[i]);
+	}
+
+	QVector<QPointF> first_side_grid = splitCurve(first_side, fineness);
+	QVector<QPointF> second_side_grid = splitCurve(second_side, fineness);
+	QVector<QPointF> third_side_grid = splitCurve(third_side, fineness);
+	QVector<QPointF> fourth_side_grid = splitCurve(fourth_side, fineness);
+
+	QVector<QPair<QPointF, QPointF>> gridLines;
+
+	for (int i = 0; i < first_side_grid.size(); i++) {
+		gridLines.push_back({first_side_grid[i], third_side_grid[third_side_grid.size() - i - 1]});
+	}
+	for (int i = 0; i < second_side_grid.size(); i++) {
+		gridLines.push_back({second_side_grid[i], fourth_side_grid[fourth_side_grid.size() - i - 1]});
+	}
+
+	return gridLines;
 }
 
 
