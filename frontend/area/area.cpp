@@ -83,14 +83,17 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 		}
 
 		// сетки?
-		// normalPen.setWidth(1.0);
+		normalPen.setWidth(1.0);
 		// normalPen.setColor(Qt::gray);
-		// painter.setPen(normalPen);
+		painter.setPen(normalPen);
 		// for (const auto& node : polygon.grid()) {
 			// painter.drawEllipse(node, 1, 1);
 			// painter.drawPoint(node);
 		// }
-		painter.drawPoints(polygon.grid());
+		// painter.drawPoints(polygon.grid());
+		for (const auto& line : polygon.grid_lines()) {
+			painter.drawLine(line.first, line.second);
+		}
 	}
 
 	// редактируемый полигон
@@ -138,6 +141,7 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 		}
 	}
 	else if (pointH.x() != -1) {
+		auto a = pointH.x();
 		QBrush vertexBrush;
 		vertexBrush.setStyle(Qt::SolidPattern);
 		vertexBrush.setColor(Qt::blue);

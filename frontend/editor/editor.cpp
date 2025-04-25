@@ -2,8 +2,6 @@
 #include "ui_editor.h"
 
 #include "area.h"
-// #include "geometry.h"
-
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
@@ -18,6 +16,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QCheckBox>
+#include "linkeditor.h"
 
 
 Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
@@ -58,6 +57,7 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 
 	connect(ui->confirmBtn, &QPushButton::released, this, &Editor::savePolygon);
 	connect(ui->cancelBtn, &QPushButton::released, this, &Editor::resetEditor);
+	connect(ui->linksBtn, &QPushButton::released, this, &Editor::setupLinks);
 
 	setStyleSheet("QDoubleSpinBox::up-button { width: 0; height: 0; }"
 				  "QDoubleSpinBox::down-button { width: 0; height: 0; }"
@@ -119,6 +119,7 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	connect(Mediator::instance(), &Mediator::onSaveToJson, this,
 			&Editor::saveToJson);
 
+
 	// Add Vertext by mouse click
 	// connect(Mediator::instance(), &Mediator::addNewVertex, this,
 	// 		&Editor::addVertexByMouse);
@@ -132,6 +133,10 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	// 		&Editor::saveVertex);
 	// connect(Mediator::instance(), &Mediator::saveVertexMouse, this,
 	// 		&Editor::onBufferConnect);
+}
+
+void Editor::setupLinks() {
+	LinkEditor editor(this);
 }
 
 void Editor::saveToJson() {

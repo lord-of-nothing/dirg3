@@ -7,12 +7,14 @@ set(HEADERS
 	mainwindow/mainwindow.h
 	editor/editor.h
 	area/area.h
+	linkeditor/linkeditor.h
 )
 
 set(SOURCES 
 	mainwindow/mainwindow.cpp
 	editor/editor.cpp
 	area/area.cpp
+	linkeditor/linkeditor.cpp
 	main.cpp
 )
 
@@ -49,5 +51,6 @@ target_include_directories(
 	area
 	editor
 	mainwindow
+	linkeditor
 )
 
