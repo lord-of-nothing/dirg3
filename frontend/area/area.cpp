@@ -141,7 +141,6 @@ void Area::paintEvent([[maybe_unused]] QPaintEvent *event) {
 		}
 	}
 	else if (pointH.x() != -1) {
-		auto a = pointH.x();
 		QBrush vertexBrush;
 		vertexBrush.setStyle(Qt::SolidPattern);
 		vertexBrush.setColor(Qt::blue);

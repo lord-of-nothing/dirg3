@@ -211,7 +211,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 	return result;
 }
 
-auto all_possible_links(QUuid polygon) {
+QVector<QPair<QUuid, QUuid>> all_possible_links(QUuid polygon) {
 	QVector<QPair<QUuid, QUuid>> links;
 	for (QUuid poly : all_polygons.keys()) {
 		if (poly != polygon) {

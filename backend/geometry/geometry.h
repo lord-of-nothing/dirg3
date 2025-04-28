@@ -46,7 +46,7 @@ bool checkNestingInOnceLayer(QVector<QPair<double, double>> vertices, int layer)
 
 auto possible_links(QUuid first_polygon, QUuid second_polygon);
 
-auto all_possible_links(QUuid polygon);
+QVector<QPair<QUuid, QUuid>> all_possible_links(QUuid polygon);
 
 double lengthSides(QUuid first_vertex, QUuid second_vertex);
 

@@ -17,6 +17,7 @@
 #include <QJsonArray>
 #include <QCheckBox>
 #include "linkeditor.h"
+#include "geometry.h"
 
 
 Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
@@ -57,7 +58,7 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 
 	connect(ui->confirmBtn, &QPushButton::released, this, &Editor::savePolygon);
 	connect(ui->cancelBtn, &QPushButton::released, this, &Editor::resetEditor);
-	connect(ui->linksBtn, &QPushButton::released, this, &Editor::setupLinks);
+	// connect(ui->linksBtn, &QPushButton::released, this, &Editor::setupLinks);
 
 	setStyleSheet("QDoubleSpinBox::up-button { width: 0; height: 0; }"
 				  "QDoubleSpinBox::down-button { width: 0; height: 0; }"
@@ -135,8 +136,14 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	// 		&Editor::onBufferConnect);
 }
 
-void Editor::setupLinks() {
-	LinkEditor editor(this);
+void Editor::editLinks() {
+	auto links = all_possible_links(editedPolygon->id());
+	if (!links.size()) {
+		return;
+	}
+
+	LinkEditor editor(links, this);
+	editor.exec();
 }
 
 void Editor::saveToJson() {
@@ -706,17 +713,21 @@ void Editor::savePolygon() {
 		edges.append(e.id());
 	}
 
+	int fineness = ui->finenessSpin->value();
 
 	// создаём полигон
-	Polygon *p = new Polygon(vertices, edges, name, material, dividers, polygonNumber, id, 10);
+	Polygon *p = new Polygon(vertices, edges, name, material, dividers, polygonNumber, id, fineness);
 
 	// emit Mediator::instance()->polygonAdd(&p);
 	// if (!id.isNull()) {
 	//     mainWindow->removePolygon(id);
 	// }
 	// mainWindow->addPolygon(p);
+	editLinks();
+
 	emit Mediator::instance() -> onPolygonSave(p, id.isNull());
 	resetEditor();
+
 }
 
 void Editor::resetEditor() {
@@ -734,6 +745,7 @@ void Editor::resetEditor() {
 	polygonNumber = Polygon::get_polygons_total();
 	ui->polygonNameEdit->setText("");
 	ui->polygonNameEdit->setPlaceholderText("P" + QString::number(polygonNumber));
+	ui->finenessSpin->setValue(10);
 	clearNew();
 	editedPolygon = nullptr;
 	dock->close();
@@ -753,6 +765,7 @@ void Editor::setupExistingPolygon(Polygon *polygon) {
 	ui->polygonNameEdit->setPlaceholderText("P" + QString::number(polygonNumber));
 	ui->polygonNameEdit->setText(polygon->name());
 	ui->polygonMaterial->setCurrentText(QString::number(polygon->material()));
+	ui->finenessSpin->setValue(polygon->fineness());
 	auto dividerId = editedPolygon->separators();
 	// emit Mediator::instance()->onBufferConnect(&buffer, polygon);
 	for (auto &vId : polygon->vertices) {
