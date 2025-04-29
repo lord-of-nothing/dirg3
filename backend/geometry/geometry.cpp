@@ -3,6 +3,7 @@
 #include <QRandomGenerator>
 #include <QUuid>
 #include <QPointF>
+#include <iostream>
 
 // bool check_convex(double first_x, double first_y, double second_x,
 // 				  double second_y, double third_x, double third_y) {
@@ -188,27 +189,133 @@ bool checkNestingInOnceLayer(QVector<QPair<double, double>> vertices, int layer)
 // }
 
 auto possible_links(QUuid first_polygon, QUuid second_polygon) {
-	for (QUuid edge : all_polygons[first_polygon].edges){
-		QPair<QUuid, QUuid> edge_coords = all_edges[edge].coords();
-		double length_edge = std::sqrt((all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) * (all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) + (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()) * (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()));
-		QUuid vertex_on_edge;
-		QUuid vertex_on_line;
-		for (QUuid vertex : all_polygons[second_polygon].vertices) {
-			double first_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()));
-			double second_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()));
-			if (std::abs(length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()){
-				vertex_on_edge = vertex;
-			} else if (std::abs(2 * std::max(length_edge, std::max(first_dist, second_dist)) - length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()) {
-				vertex_on_line = vertex;
+	// for (QUuid edge : all_polygons[first_polygon].edges){
+	// 	QPair<QUuid, QUuid> edge_coords = all_edges[edge].coords();
+	// 	double length_edge = std::sqrt((all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) * (all_vertices[edge_coords.second].x() - all_vertices[edge_coords.first].x()) + (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()) * (all_vertices[edge_coords.second].y() - all_vertices[edge_coords.first].y()));
+	// 	QUuid vertex_on_edge;
+	// 	QUuid vertex_on_line;
+	// 	for (QUuid vertex : all_polygons[second_polygon].vertices) {
+	// 		double first_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.first].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.first].y()));
+	// 		double second_dist = std::sqrt((all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) * (all_vertices[vertex].x() - all_vertices[edge_coords.second].x()) + (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()) * (all_vertices[vertex].y() - all_vertices[edge_coords.second].y()));
+	// 		if (std::abs(length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()){
+	// 			vertex_on_edge = vertex;
+	// 		} else if (std::abs(2 * std::max(length_edge, std::max(first_dist, second_dist)) - length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()) {
+	// 			vertex_on_line = vertex;
+	// 		}
+	// 	}
+	// 	if (!vertex_on_edge.isNull() && !vertex_on_line.isNull()) {
+	// 		QPair<QUuid, QUuid> result = {vertex_on_edge, vertex_on_line};
+	// 		return result;
+	// 	}
+	// }
+	// QPair<QUuid, QUuid> result;
+	// return result;
+	QPair<QUuid, QUuid> link;
+	for (QUuid edge_first : all_polygons[first_polygon].edges) {
+		for (QUuid edge_second : all_polygons[second_polygon].edges) {
+			QUuid vertex_first_start;
+			QUuid vertex_first_end;
+			QUuid vertex_second_start;
+			QUuid vertex_second_end;
+
+			if (all_vertices[all_edges[edge_first].coords().first].x() < all_vertices[all_edges[edge_first].coords().second].x()) {
+				vertex_first_start = all_edges[edge_first].coords().first;
+				vertex_first_end = all_edges[edge_first].coords().second;
+			} else if (all_vertices[all_edges[edge_first].coords().first].x() > all_vertices[all_edges[edge_first].coords().second].x()) {
+				vertex_first_start = all_edges[edge_first].coords().second;
+				vertex_first_end = all_edges[edge_first].coords().first;
+			} else {
+				if (all_vertices[all_edges[edge_first].coords().first].y() < all_vertices[all_edges[edge_first].coords().second].y()) {
+					vertex_first_start = all_edges[edge_first].coords().first;
+					vertex_first_end = all_edges[edge_first].coords().second;
+				} else{
+					vertex_first_start = all_edges[edge_first].coords().second;
+					vertex_first_end = all_edges[edge_first].coords().first;
+				}
+			}
+
+			if (all_vertices[all_edges[edge_second].coords().first].x() < all_vertices[all_edges[edge_second].coords().second].x()) {
+				vertex_second_start = all_edges[edge_second].coords().first;
+				vertex_second_end = all_edges[edge_second].coords().second;
+			} else if (all_vertices[all_edges[edge_second].coords().first].x() > all_vertices[all_edges[edge_second].coords().second].x()) {
+				vertex_second_start = all_edges[edge_second].coords().second;
+				vertex_second_end = all_edges[edge_second].coords().first;
+			} else {
+				if (all_vertices[all_edges[edge_second].coords().first].y() < all_vertices[all_edges[edge_second].coords().second].y()) {
+					vertex_second_start = all_edges[edge_second].coords().first;
+					vertex_second_end = all_edges[edge_second].coords().second;
+				} else{
+					vertex_second_start = all_edges[edge_second].coords().second;
+					vertex_second_end = all_edges[edge_second].coords().first;
+				}
+			}
+
+			// std::cout << all_vertices[vertex_first_start].x() << ' ' << all_vertices[vertex_first_start].y() << ' ' << all_vertices[vertex_first_end].x() << ' ' << all_vertices[vertex_first_end].y() << ' ';
+			// std::cout << all_vertices[vertex_second_start].x() << ' ' << all_vertices[vertex_second_start].y() << ' ' << all_vertices[vertex_second_end].x() << ' ' << all_vertices[vertex_second_end].y() << '\n';
+			// std::cout << "--------------------------------------------------" << std::endl;
+
+
+			double first_mult = (all_vertices[vertex_second_start].x() - all_vertices[vertex_first_start].x()) * (all_vertices[vertex_first_end].y() - all_vertices[vertex_first_start].y());
+			double second_mult = (all_vertices[vertex_first_end].x() - all_vertices[vertex_first_start].x()) * (all_vertices[vertex_second_start].y() - all_vertices[vertex_first_start].y());
+
+			double third_mult = (all_vertices[vertex_second_end].x() - all_vertices[vertex_first_start].x()) * (all_vertices[vertex_first_end].y() - all_vertices[vertex_first_start].y());
+			double fourth_mult = (all_vertices[vertex_first_end].x() - all_vertices[vertex_first_start].x()) * (all_vertices[vertex_second_end].y() - all_vertices[vertex_first_start].y());
+
+			// std::cout << first_mult << " " << second_mult << " " << third_mult << " " << fourth_mult << std::endl;
+
+
+
+			if (std::abs(first_mult - second_mult) < std::numeric_limits<double>::epsilon() && std::abs(third_mult - fourth_mult) < std::numeric_limits<double>::epsilon()) {
+				// std::cout << all_vertices[vertex_first_start].x() << ' ' << all_vertices[vertex_first_start].y() << ' ' << all_vertices[vertex_first_end].x() << ' ' << all_vertices[vertex_first_end].y() << ' ';
+				// std::cout << all_vertices[vertex_second_start].x() << ' ' << all_vertices[vertex_second_start].y() << ' ' << all_vertices[vertex_second_end].x() << ' ' << all_vertices[vertex_second_end].y() << '\n';
+				// std::cout << "--------------------------------------------------";
+
+
+				if (std::abs(all_vertices[vertex_first_start].x() - all_vertices[vertex_first_end].x()) < std::numeric_limits<double>::epsilon()) {
+					QUuid start;
+					QUuid finish;
+					if (all_vertices[vertex_first_start].y() < all_vertices[vertex_second_start].y()) {
+						start = vertex_second_start;
+					} else {
+						start = vertex_first_start;
+					}
+
+					if (all_vertices[vertex_first_end].y() < all_vertices[vertex_second_end].y()) {
+						finish = vertex_first_end;
+					} else {
+						finish = vertex_second_end;
+					}
+
+
+					if (all_vertices[start].y() < all_vertices[finish].y()){
+						link = {start, finish};
+						return link;
+					}
+				} else {
+					QUuid start;
+					QUuid finish;
+					if (all_vertices[vertex_first_start].x() < all_vertices[vertex_second_start].x()) {
+						start = vertex_second_start;
+					} else {
+						start = vertex_first_start;
+					}
+
+					if (all_vertices[vertex_first_end].x() < all_vertices[vertex_second_end].x()) {
+						finish = vertex_first_end;
+					} else {
+						finish = vertex_second_end;
+					}
+
+
+					if (all_vertices[start].x() < all_vertices[finish].x()){
+						link = {start, finish};
+						return link;
+					}
+				}
 			}
 		}
-		if (!vertex_on_edge.isNull() && !vertex_on_line.isNull()) {
-			QPair<QUuid, QUuid> result = {vertex_on_edge, vertex_on_line};
-			return result;
-		}
 	}
-	QPair<QUuid, QUuid> result;
-	return result;
+	return link;
 }
 
 QVector<QPair<QUuid, QUuid>> all_possible_links(QUuid polygon) {

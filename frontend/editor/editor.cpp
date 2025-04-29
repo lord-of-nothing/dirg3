@@ -139,12 +139,19 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 void Editor::editLinks(Polygon* polygon) {
 	auto tmp = polygon->id();
 	auto links = all_possible_links(tmp);
+	qDebug() << links.size();
 	if (!links.size()) {
 		return;
 	}
+	qDebug() << links.size();
+	for (int i = 0; i < links.size(); i++) {
+		qDebug() << all_vertices[links[i].first].x() << ' ' << all_vertices[links[i].first].y() << '\n';
+		qDebug() << all_vertices[links[i].second].x() << ' ' << all_vertices[links[i].second].y() << '\n';
 
-	LinkEditor editor(links, this);
-	editor.exec();
+	}
+
+	// LinkEditor editor(links, this);
+	// editor.exec();
 }
 
 void Editor::saveToJson() {
