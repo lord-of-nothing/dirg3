@@ -136,8 +136,9 @@ Editor::Editor(QWidget *parent) : QWidget(parent), ui(new Ui::Editor) {
 	// 		&Editor::onBufferConnect);
 }
 
-void Editor::editLinks() {
-	auto links = all_possible_links(editedPolygon->id());
+void Editor::editLinks(Polygon* polygon) {
+	auto tmp = polygon->id();
+	auto links = all_possible_links(tmp);
 	if (!links.size()) {
 		return;
 	}
@@ -723,7 +724,7 @@ void Editor::savePolygon() {
 	//     mainWindow->removePolygon(id);
 	// }
 	// mainWindow->addPolygon(p);
-	editLinks();
+	editLinks(p);
 
 	emit Mediator::instance() -> onPolygonSave(p, id.isNull());
 	resetEditor();

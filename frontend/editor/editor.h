@@ -50,7 +50,7 @@ private:
 	void addVRow(int row, QString vName, double x, double y, int isDivider);
 	void addERow(int row, QString name, QString property);
 
-	void editLinks();
+	void editLinks(Polygon* polygon);
 
 	void saveVertex(int row);
 	void resetVertex(int row);

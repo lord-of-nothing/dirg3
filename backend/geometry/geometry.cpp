@@ -199,7 +199,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 			if (std::abs(length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()){
 				vertex_on_edge = vertex;
 			} else if (std::abs(2 * std::max(length_edge, std::max(first_dist, second_dist)) - length_edge - first_dist - second_dist) < std::numeric_limits<double>::epsilon()) {
-				vertex_on_edge = vertex;
+				vertex_on_line = vertex;
 			}
 		}
 		if (!vertex_on_edge.isNull() && !vertex_on_line.isNull()) {
