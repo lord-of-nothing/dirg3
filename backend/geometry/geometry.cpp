@@ -274,7 +274,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 				if (std::abs(all_vertices[vertex_first_start].x() - all_vertices[vertex_first_end].x()) < std::numeric_limits<double>::epsilon()) {
 					QUuid start;
 					QUuid finish;
-					if (all_vertices[vertex_first_start].y() < all_vertices[vertex_second_start].y()) {
+					if (all_vertices[vertex_first_start].y() <= all_vertices[vertex_second_start].y()) {
 						start = vertex_second_start;
 					} else {
 						start = vertex_first_start;
@@ -294,7 +294,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 				} else {
 					QUuid start;
 					QUuid finish;
-					if (all_vertices[vertex_first_start].x() < all_vertices[vertex_second_start].x()) {
+					if (all_vertices[vertex_first_start].x() <= all_vertices[vertex_second_start].x()) {
 						start = vertex_second_start;
 					} else {
 						start = vertex_first_start;

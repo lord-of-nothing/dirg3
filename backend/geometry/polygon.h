@@ -33,6 +33,8 @@ public:
 	auto &next_edge(const QUuid &current_edge) const;
 	auto &prev_edge(const QUuid &current_edge) const;
 
+	void set_vertices(const QUuid &old_vertex, const QUuid &new_vertex);
+
 	void delete_polygon();
 
 	static inline int get_polygons_total() { return total_polygon_number; }
@@ -43,6 +45,7 @@ public:
 	QVector<QUuid> edges;
 	QVector<QUuid> vertices;
 	QVector<QUuid> contacts;
+	QVector<QUuid> unused_vertices;
 
 private:
 	QString name_;

@@ -83,3 +83,13 @@ void Polygon::delete_polygon() {
 
 	all_polygons.remove(polygon_id);
 }
+
+void Polygon::set_vertices(const QUuid &old_vertex, const QUuid &new_vertex) {
+	for (int i = 0; i < vertices.size(); i++) {
+		if (vertices[i] ==  old_vertex) {
+			vertices[i] = new_vertex;
+		}
+	}
+	all_vertices[new_vertex].polygons.push_back(id_);
+	all_vertices[old_vertex].polygons.erase(std::remove(all_vertices[old_vertex].polygons.begin(), all_vertices[old_vertex].polygons.end(), id_), all_vertices[old_vertex].polygons.end());
+}
