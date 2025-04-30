@@ -210,7 +210,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 	// }
 	// QPair<QUuid, QUuid> result;
 	// return result;
-	QPair<QUuid, QUuid> link;
+	QVector<QUuid> link;
 	for (QUuid edge_first : all_polygons[first_polygon].edges) {
 		for (QUuid edge_second : all_polygons[second_polygon].edges) {
 			QUuid vertex_first_start;
@@ -288,7 +288,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 
 
 					if (all_vertices[start].y() < all_vertices[finish].y()){
-						link = {start, finish};
+						link = {start, finish, second_polygon};
 						return link;
 					}
 				} else {
@@ -308,7 +308,7 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 
 
 					if (all_vertices[start].x() < all_vertices[finish].x()){
-						link = {start, finish};
+						link = {start, finish, second_polygon};
 						return link;
 					}
 				}
@@ -318,12 +318,13 @@ auto possible_links(QUuid first_polygon, QUuid second_polygon) {
 	return link;
 }
 
-QVector<QPair<QUuid, QUuid>> all_possible_links(QUuid polygon) {
-	QVector<QPair<QUuid, QUuid>> links;
+QVector<QVector<QUuid>> all_possible_links(QUuid polygon) {
+	QVector<QVector<QUuid>> links;
 	for (QUuid poly : all_polygons.keys()) {
 		if (poly != polygon) {
-			QPair<QUuid, QUuid> link = possible_links(polygon, poly);
-			if (!link.first.isNull() && !link.second.isNull()) {
+			QVector<QUuid> link = possible_links(polygon, poly);
+			std::cout << link.size() << "err";
+			if (link.size() == 3) {
 				links.push_back(link);
 			}
 		}

@@ -145,8 +145,9 @@ void Editor::editLinks(Polygon* polygon) {
 	}
 	qDebug() << links.size();
 	for (int i = 0; i < links.size(); i++) {
-		qDebug() << all_vertices[links[i].first].x() << ' ' << all_vertices[links[i].first].y() << '\n';
-		qDebug() << all_vertices[links[i].second].x() << ' ' << all_vertices[links[i].second].y() << '\n';
+		qDebug() << all_vertices[links[i][0]].x() << ' ' << all_vertices[links[i][0]].y() << '\n';
+		qDebug() << all_vertices[links[i][1]].x() << ' ' << all_vertices[links[i][1]].y() << '\n';
+		qDebug() << all_polygons[links[i][2]].name() << '\n' << "--------" << '\n';
 
 	}
 
