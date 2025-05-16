@@ -19,6 +19,12 @@ public:
 	inline double y() const { return y_; }
 	inline auto &id() const { return id_; }
 	inline auto &name() const { return name_; }
+	inline void set_x(double x) {x_ = x;};
+	inline void set_y(double y) {y_ = y;};
+	inline void set_name(QString name) {name_ = name;};
+
+
+
 
 	inline void add_edge(const QUuid &edge_id) { edges.append(edge_id); }
 	inline void remove_edge(const QUuid &edge_id) {

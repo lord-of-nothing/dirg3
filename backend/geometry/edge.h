@@ -23,6 +23,9 @@ public:
 	inline auto &name() const { return name_; }
 	inline auto &coords() const { return coords_; }
 	inline auto get_property() const { return property_; }
+	inline void set_property(int property) {property_ = property;}
+	inline void set_name(QString name) {name_ = name;}
+	inline void set_coords(QPair<QUuid, QUuid> coords) {coords_ = coords;}
 
 	inline void add_polygon(const QUuid &polygon_id) {
 		polygons.append(polygon_id);

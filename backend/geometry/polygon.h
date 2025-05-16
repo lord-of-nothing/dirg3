@@ -23,9 +23,14 @@ public:
 	inline auto material() const { return material_; }
 	inline auto fineness() const { return fineness_; }
 	inline auto separators() const { return separators_; }
+	inline void set_name(QString name) {name_ = name;}
+	inline void set_material(int material) {material_ = material;}
+	inline void set_polygon(QVector<QPair<double, double>> new_vertices, QVector<QString> new_vertices_name, QVector<QString> new_edges_name, QVector<int> new_edges_properties);
+
 	// inline auto grid() const { return grid_; }
 	const QVector<QPointF> grid() { return grid_; }
 	const QVector<QPair<QPointF, QPointF>> grid_lines() { return grid_lines_; }
+
 
 	auto &next_vertex(const QUuid &current_vertex) const;
 	auto &prev_vertex(const QUuid &current_vertex) const;

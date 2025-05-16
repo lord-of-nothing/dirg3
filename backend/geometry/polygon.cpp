@@ -93,3 +93,41 @@ void Polygon::set_vertices(const QUuid &old_vertex, const QUuid &new_vertex) {
 	all_vertices[new_vertex].polygons.push_back(id_);
 	all_vertices[old_vertex].polygons.erase(std::remove(all_vertices[old_vertex].polygons.begin(), all_vertices[old_vertex].polygons.end(), id_), all_vertices[old_vertex].polygons.end());
 }
+
+void Polygon::set_polygon(QVector<QPair<double, double>> new_vertices, QVector<QString> new_vertices_name, QVector<QString> new_edges_name, QVector<int> new_edges_properties){
+	if (vertices.size() == new_vertices.size()) {
+		for (int i = 0; i < vertices.size(); i++) {
+			all_vertices[vertices[i]].set_x(new_vertices[i].first);
+			all_vertices[vertices[i]].set_y(new_vertices[i].second);
+			all_vertices[vertices[i]].set_name(new_vertices_name[i]);
+			all_edges[edges[i]].set_name(new_edges_name[i]);
+			all_edges[edges[i]].set_property(new_edges_properties[i]);
+		}
+	} else if (vertices.size() < new_vertices.size()) {
+		int old_count_vertices = vertices.size();
+		for (int i = 0; i < old_count_vertices; i++) {
+			all_vertices[vertices[i]].set_x(new_vertices[i].first);
+			all_vertices[vertices[i]].set_y(new_vertices[i].second);
+			all_vertices[vertices[i]].set_name(new_vertices_name[i]);
+		}
+		for (int i = old_count_vertices; i < new_vertices.size(); i++) {
+			QUuid new_vertex = Vertex(new_vertices[i].first, new_vertices[i].second, new_vertices_name[i]).id();
+			vertices.push_back(new_vertex);
+		}
+		for (int i = 0; i < old_count_vertices - 1; i++) {
+			all_edges[edges[i]].set_name(new_edges_name[i]);
+			all_edges[edges[i]].set_property(new_edges_properties[i]);
+		}
+		all_edges[edges[old_count_vertices - 1]].set_coords({vertices[old_count_vertices - 1], vertices[old_count_vertices]});
+		all_edges[edges[old_count_vertices - 1]].set_name(new_edges_name[old_count_vertices - 1]);
+		all_edges[edges[old_count_vertices - 1]].set_property(new_edges_properties[old_count_vertices - 1]);
+
+		for (int i = old_count_vertices; i < new_vertices.size() - 1; i++) {
+			QUuid new_edge = Edge(vertices[i], vertices[i + 1], new_edges_name[i], new_edges_properties[i]).id();
+			edges.push_back(new_edge);
+		}
+		QUuid new_edge = Edge(vertices[new_vertices.size() - 1], vertices[0], new_edges_name[new_vertices.size() - 1], new_edges_properties[new_vertices.size() - 1]).id();
+		edges.push_back(new_edge);
+	}
+}
+
