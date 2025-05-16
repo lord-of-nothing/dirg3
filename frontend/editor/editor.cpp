@@ -151,8 +151,8 @@ void Editor::editLinks(Polygon* polygon) {
 
 	}
 
-	// LinkEditor editor(links, this);
-	// editor.exec();
+	LinkEditor editor(links, this);
+	editor.exec();
 }
 
 void Editor::saveToJson() {
@@ -690,12 +690,25 @@ void Editor::savePolygon() {
 	// материал полигона
 	int material = ui->polygonMaterial->currentText().toInt();
 
+	// property рёбер
+	QVector<int> eProperties;
+	for (int row = 0; row < etable->rowCount(); ++row) {
+		int value = qobject_cast<QComboBox*>(etable->cellWidget(row, 1))->currentText().toInt();
+		eProperties.append(value);
+	}
+
 	QUuid id;
 	if (editedPolygon != nullptr) {
-		// name = editedPolygon->name();
-		id = editedPolygon->id();
-		editedPolygon->delete_polygon();
-		editedPolygon = nullptr;
+		// id = editedPolygon->id();
+		// editedPolygon->delete_polygon();
+		// editedPolygon = nullptr;
+		editedPolygon->set_polygon(vCoords, vNames, eNames, eProperties);
+
+		editLinks(editedPolygon);
+		emit Mediator::instance()->onPolygonSave(editedPolygon, false);
+		resetEditor();
+
+		return;
 	}
 
 	QVector<QUuid> vertices;
@@ -714,11 +727,11 @@ void Editor::savePolygon() {
 
 	// создаём рёбра
 	for (int row = 0; row < etable->rowCount(); ++row) {
-		int property = qobject_cast<QComboBox *>(etable->cellWidget(row, 1))
-						   ->currentText()
-						   .toInt();
+		// int property = qobject_cast<QComboBox *>(etable->cellWidget(row, 1))
+						   // ->currentText()
+						   // .toInt();
 		Edge e(vertices[row], vertices[(row + 1) % etable->rowCount()], eNames[row],
-			   property);
+			   eProperties[row]);
 		edges.append(e.id());
 	}
 
