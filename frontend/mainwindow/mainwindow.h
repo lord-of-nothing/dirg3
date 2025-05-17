@@ -23,6 +23,7 @@ private slots:
 	void onPolygonSelectReceived();
 	void onEditingExitReceived();
 	void onZoomReceived(QPointF oldPos, QPointF newPos);
+	void loadLinks();
 
 private:
 	Ui::MainWindow *ui;

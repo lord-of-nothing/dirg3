@@ -39,6 +39,8 @@ signals:
 
 	void onResetEverything();
 
+	void onLinkEdit();
+
 	// void addNewVertex(QPoint *point);
 	// void editVertexMouse(int row);
 	// void editVertexCoordMouse(int row, QPoint *new_coord);

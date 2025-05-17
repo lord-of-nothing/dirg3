@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "editor.h"
+#include "contact.h"
 
 #include <QPalette>
 #include <QAction>
@@ -138,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent)
 	addAction(actionClose);
 	QObject::connect(actionClose, &QAction::triggered, this,
 					 &QCoreApplication::quit);
+
+	connect(Mediator::instance(), &Mediator::onLinkEdit, this, &MainWindow::loadLinks);
 }
 
 
@@ -182,6 +185,20 @@ void MainWindow::addPolygon(Polygon *polygon) {
 		QTreeWidgetItem *e = new QTreeWidgetItem(edgeFolder);
 		e->setText(0, all_edges[edge].name());
 		e->setData(0, Qt::UserRole, QVariant::fromValue(edge));
+	}
+}
+
+void MainWindow::loadLinks() {
+	QTreeWidget *tree = ui->linkTree;
+
+	tree->clear();
+	for (const auto& elem : all_contacts) {
+		QString p1 = all_polygons[elem.first_polygon()].name();
+		QString p2 = all_polygons[elem.second_polygon()].name();
+		QTreeWidgetItem *item = new QTreeWidgetItem(tree);
+
+		item->setText(0, p1 + "   " + p2);
+		item->setData(0, Qt::UserRole, QVariant::fromValue(elem.id()));
 	}
 }
 
