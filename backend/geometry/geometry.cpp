@@ -452,6 +452,9 @@ QVector<QPointF> gridPolygon(const QVector<QUuid> &vertices, QVector<QUuid> sep,
 			grid.push_back(point_intersection(first_side_grid[i], third_side_grid[third_side_grid.size() - i - 1], second_side_grid[j], fourth_side_grid[fourth_side_grid.size() - j - 1]));
 		}
 	}
+	// for (int i = 0; i < first_side_grid.size(); i++) {
+
+	// }
 
 	return grid;
 }

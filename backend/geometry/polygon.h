@@ -39,8 +39,11 @@ public:
 	auto &prev_edge(const QUuid &current_edge) const;
 
 	void set_vertices(const QUuid &old_vertex, const QUuid &new_vertex);
+	void set_sep(const QUuid &old_vertex, const QUuid &new_vertex);
 
 	void delete_polygon();
+
+	void new_grid();
 
 	static inline int get_polygons_total() { return total_polygon_number; }
 	static inline void reset_polygons_total() { total_polygon_number = 0; }

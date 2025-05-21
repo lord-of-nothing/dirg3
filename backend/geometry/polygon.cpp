@@ -2,6 +2,8 @@
 #include "edge.h"
 #include "vertex.h"
 #include "geometry.h"
+#include "iostream"
+#include "QDebug"
 
 QUuid Polygon::gen_uuid() {
 	QUuid uuid_str = QUuid::createUuid();
@@ -129,5 +131,23 @@ void Polygon::set_polygon(QVector<QPair<double, double>> new_vertices, QVector<Q
 		QUuid new_edge = Edge(vertices[new_vertices.size() - 1], vertices[0], new_edges_name[new_vertices.size() - 1], new_edges_properties[new_vertices.size() - 1]).id();
 		edges.push_back(new_edge);
 	}
+
+	grid_ = gridPolygon(vertices, separators_, fineness_);
+	grid_lines_ = gridLine(vertices, separators_, fineness_);
 }
 
+void Polygon::set_sep(const QUuid &old_vertex, const QUuid &new_vertex) {
+	for (int i = 0; i < separators_.size(); i++) {
+		if (separators_[i] ==  old_vertex) {
+			separators_[i] = new_vertex;
+		}
+	}
+}
+
+void Polygon::new_grid() {
+	// std::cout << fineness_ << " " << vertices.size() << " " << separators_.size();
+	// qDebug()<< fineness_ << " " << vertices.size() << " " << separators_.size();
+
+	grid_ = gridPolygon(vertices, separators_, fineness_);
+	grid_lines_ = gridLine(vertices, separators_, fineness_);
+}

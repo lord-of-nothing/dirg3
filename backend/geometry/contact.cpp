@@ -1,6 +1,7 @@
 #include "contact.h"
 #include "vertex.h"
 #include "polygon.h"
+#include <iostream>
 
 
 
@@ -19,32 +20,56 @@ Contact::Contact(QUuid first_vertex, QUuid second_vertex, QUuid first_polygon, Q
 	all_polygons[first_polygon].contacts.push_back(id_);
 	all_polygons[second_polygon].contacts.push_back(id_);
 
-	for (QUuid vertex : all_polygons[second_polygon].vertices) {
+	// for (QUuid vertex : all_polygons[second_polygon].vertices) {
+	// 	double first_diff = std::abs(all_vertices[vertex].x() - all_vertices[first_vertex].x());
+	// 	double second_diff  = std::abs(all_vertices[vertex].y() - all_vertices[first_vertex].y());
+	// 	if (first_diff < std::numeric_limits<double>::epsilon() && second_diff < std::numeric_limits<double>::epsilon()) {
+	// 		all_polygons[second_polygon].set_vertices(vertex, first_vertex);
+	// 		all_polygons[second_polygon].unused_vertices.push_back(vertex);
+	// 		std::cout << "fcvf";
+	// 	}
+	// }
+
+	// for (QUuid vertex : all_polygons[second_polygon].vertices) {
+	// 	double first_diff = std::abs(all_vertices[vertex].x() - all_vertices[second_vertex].x());
+	// 	double second_diff  = std::abs(all_vertices[vertex].y() - all_vertices[second_vertex].y());
+	// 	if (first_diff < std::numeric_limits<double>::epsilon() && second_diff < std::numeric_limits<double>::epsilon()) {
+	// 		all_polygons[second_polygon].set_vertices(vertex, second_vertex);
+	// 		all_polygons[second_polygon].unused_vertices.push_back(vertex);
+	// 		std::cout << "fcvf";
+	// 	}
+	// }
+
+	for (QUuid vertex : all_polygons[first_polygon].vertices) {
 		double first_diff = std::abs(all_vertices[vertex].x() - all_vertices[first_vertex].x());
 		double second_diff  = std::abs(all_vertices[vertex].y() - all_vertices[first_vertex].y());
 		if (first_diff < std::numeric_limits<double>::epsilon() && second_diff < std::numeric_limits<double>::epsilon()) {
-			all_polygons[second_polygon].set_vertices(vertex, first_vertex);
-			all_polygons[second_polygon].unused_vertices.push_back(vertex);
+			all_polygons[first_polygon].set_vertices(vertex, first_vertex);
+			all_polygons[first_polygon].set_sep(vertex, first_vertex);
+			all_polygons[first_polygon].unused_vertices.push_back(vertex);
 		}
 	}
 
-	for (QUuid vertex : all_polygons[second_polygon].vertices) {
+	for (QUuid vertex : all_polygons[first_polygon].vertices) {
 		double first_diff = std::abs(all_vertices[vertex].x() - all_vertices[second_vertex].x());
 		double second_diff  = std::abs(all_vertices[vertex].y() - all_vertices[second_vertex].y());
 		if (first_diff < std::numeric_limits<double>::epsilon() && second_diff < std::numeric_limits<double>::epsilon()) {
-			all_polygons[second_polygon].set_vertices(vertex, second_vertex);
-			all_polygons[second_polygon].unused_vertices.push_back(vertex);
+			all_polygons[first_polygon].set_vertices(vertex, second_vertex);
+			all_polygons[first_polygon].set_sep(vertex, second_vertex);
+			all_polygons[first_polygon].unused_vertices.push_back(vertex);
 		}
 	}
+
+	all_polygons[first_polygon].new_grid();
+	all_polygons[second_polygon].new_grid();
 
 	all_contacts[id_] = *this;
 }
 
 void Contact::delete_contact() {
-	// vec.erase(std::remove(vec.begin(), vec.end(), value_to_remove), vec.end());
 	all_vertices[first_vertex_].contacts.erase(std::remove(all_vertices[first_vertex_].contacts.begin(), all_vertices[first_vertex_].contacts.end(), id_), all_vertices[first_vertex_].contacts.end());
 	all_vertices[second_vertex_].contacts.erase(std::remove(all_vertices[second_vertex_].contacts.begin(), all_vertices[second_vertex_].contacts.end(), id_), all_vertices[second_vertex_].contacts.end());
 	all_polygons[second_polygon_].contacts.erase(std::remove(all_polygons[second_polygon_].contacts.begin(), all_polygons[second_polygon_].contacts.end(), id_), all_polygons[second_polygon_].contacts.end());
-	all_polygons[first_polygon_].contacts.erase(std::remove(all_polygons[second_polygon_].contacts.begin(), all_polygons[second_polygon_].contacts.end(), id_), all_polygons[second_polygon_].contacts.end());
-	
+	all_polygons[first_polygon_].contacts.erase(std::remove(all_polygons[first_polygon_].contacts.begin(), all_polygons[first_polygon_].contacts.end(), id_), all_polygons[first_polygon_].contacts.end());
+	all_contacts.remove(id_);
 }
